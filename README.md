@@ -3,11 +3,11 @@ This repository was created for practice.
 
 Tested with:
 
-Vagrant 2.4.0
-Ansible-core 2.16.2
-Ruby 2.3.8
-PostgreSQL 14
-Nginx 1.24.0
+Vagrant 2.4.0<br />
+Ansible-core 2.16.2<br />
+Ruby 2.3.8<br />
+PostgreSQL 14<br />
+Nginx 1.24.0<br />
 
 Howto use:
 
