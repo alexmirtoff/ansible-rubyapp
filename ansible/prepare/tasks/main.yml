@@ -93,11 +93,24 @@
   become_user: rubyapp
 
 # Installing gem's dependencies
-- name: "Installing gem's dependencies... "
+- name: "Installing gems with Bundler... "
   ansible.builtin.shell: |
     source /home/rubyapp/.bash_profile 
     export PATH=$PATH:/usr/pgsql-14/bin
     bundle install --no-cache --without development
+  args:
+    chdir: /opt/rubyapp
+    executable: /bin/bash
+  become: true
+  become_user: rubyapp 
+
+# Precompiling assets...
+- name: "Precompiling assets... "
+  ansible.builtin.shell: |
+    source /home/rubyapp/.bash_profile 
+    export RAILS_ENV=production
+    export SECRET_KEY_BASE={{secret_key_base}}
+    bundle exec rake assets:precompile
   args:
     chdir: /opt/rubyapp
     executable: /bin/bash

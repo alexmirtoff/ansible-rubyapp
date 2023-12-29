@@ -25,7 +25,6 @@ Vagrant.configure("2") do |config|
   config.vm.define "ruby_server" do |ruby_server|
     ruby_server.vm.box = "bento/centos-7.9"
     ruby_server.vm.hostname = "ruby-server"
-#    ruby_server.vbguest.auto_update = false
     ruby_server.vm.network "private_network", ip: "192.168.56.210"
     ruby_server.vm.provision "shell", inline: <<-SHELL
       chmod 644 /home/vagrant/.ssh/vagrant.pub
