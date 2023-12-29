@@ -1,0 +1,124 @@
+---
+# tasks file for prepare
+
+
+# Installing dependencies
+- name: Installing dependencies
+  ansible.builtin.yum:
+    name:
+      - epel-release
+      - "@Development tools"
+      - libffi-devel
+      - readline-devel
+      - libxml2-devel
+      - libxslt-devel
+      - ruby
+      - sqlite-devel
+      - zlib-devel
+      - nodejs
+      - openssl-devel
+    state: present
+
+# Installling RVM (Ruby Version Manager)
+- name: Installing RVM
+  ansible.builtin.shell: |
+    gpg2 --keyserver keyserver.ubuntu.com --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+    \curl -sSL https://get.rvm.io | bash -s stable
+
+# Creating application user/group
+- name: Creating group rubyapp
+  ansible.builtin.group:
+    name: rubyapp
+    state: present
+
+- name: Creating user rubyapp
+  ansible.builtin.user:
+    name: rubyapp
+    uid: 1050
+    groups: rubyapp,rvm
+    append: yes
+
+# Installling Ruby 2.3.8
+- name: Installing Ruby 2.3.8 via RVM
+  ansible.builtin.shell:
+    cmd: source .bash_profile && rvm install 2.3.8
+  args:
+    chdir: /home/rubyapp
+    executable: /bin/bash
+  become: true
+  become_user: rubyapp 
+
+# Installling Bundler
+- name: Installing Bundler
+  ansible.builtin.shell:
+    cmd: source .bash_profile && gem install bundler:1.16.2
+  args:
+    chdir: /home/rubyapp
+    executable: /bin/bash
+  become: true
+  become_user: rubyapp 
+
+# Creating application workdir
+- name: Creating application directory
+  ansible.builtin.file:
+    path: /opt/rubyapp
+    state: directory
+    recurse: yes
+    owner: rubyapp
+    group: rubyapp
+    mode: '0755'
+
+- name: "Checking if application is deployed..."
+  ansible.builtin.stat:
+    path: "/opt/rubyapp/Gemfile"
+  register: rubyapp_data
+
+# Deploying application files to remote
+- name: Deploying app files
+  ansible.builtin.copy:
+    src: ../files/xpaste_practicum/
+    dest: /opt/rubyapp/
+    owner: rubyapp
+    group: rubyapp
+  when: not rubyapp_data.stat.exists
+
+# Configuring bundle
+- name: "Configuring Bundle..."
+  ansible.builtin.shell: |
+    source /home/rubyapp/.bash_profile && bundle config build.nokogiri --use-system-libraries
+  args:
+    chdir: /opt/rubyapp
+    executable: /bin/bash
+  become: true
+  become_user: rubyapp
+
+# Installing gem's dependencies
+- name: "Installing gem's dependencies... "
+  ansible.builtin.shell: |
+    source /home/rubyapp/.bash_profile 
+    export PATH=$PATH:/usr/pgsql-14/bin
+    bundle install --no-cache --without development
+  args:
+    chdir: /opt/rubyapp
+    executable: /bin/bash
+  become: true
+  become_user: rubyapp 
+
+# Deploying Systemd service
+- name: Deploying Systemd service - rubyapp.service
+  ansible.builtin.template:
+    src: ./templates/rubyapp.service.j2
+    dest: /usr/lib/systemd/system/rubyapp.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload daemon
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: Make sure a service unit is running
+  ansible.builtin.systemd_service:
+    enabled: true
+    state: started
+    name: rubyapp

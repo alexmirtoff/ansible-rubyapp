@@ -1,0 +1,24 @@
+####################################
+# RUBY APPLICATION DEPLOY PLAYBOOK #
+####################################
+
+---
+- hosts: "all"
+  become: true
+  vars:
+    secret_key_base: 12345
+    rails_env: production
+    rails_log_to_stdout: 1
+    db_host: 127.0.0.1
+    db_port: 5432
+    db_name: rubyappdb
+    db_user: rubyappuser
+    db_password: rubyapppassword
+    ruby_application_path: /opt/rubyapp
+  roles:
+    - role: postgres
+    - role: prepare
+    - role: geerlingguy.nginx
+      vars:
+        nginx_conf_template: "./nginx/templates/nginx.conf.j2"
+  

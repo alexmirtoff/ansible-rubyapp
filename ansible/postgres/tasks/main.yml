@@ -1,0 +1,98 @@
+---
+# tasks file for postgres
+
+# Installing dependencies
+- name: Install the Psql rpm from a remote repo
+  ansible.builtin.yum:
+    name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+    state: present
+
+- name: Enabling repos - centos-release-scl & epel-release
+  ansible.builtin.yum:
+    name: 
+      - centos-release-scl
+      - epel-release
+    state: present
+
+# Installing some dependencies
+- name: Installing some dependencies
+  ansible.builtin.yum:
+    name:
+      - llvm-toolset-7
+      - libzstd
+      - llvm5.0-devel
+      - llvm5.0
+      - python-psycopg2
+    state: present
+    update_cache: true
+
+
+# Installing PostgreSQL 14
+- name: Installing PostgreSQL 14
+  ansible.builtin.yum:
+    name:
+      - postgresql14
+      - postgresql14-server
+      - postgresql14-devel
+      - postgresql14-contrib
+      - postgresql14-libs
+    state: present
+    update_cache: true
+
+# Initial
+- name: "PostgreSQL is already initialized? Looking for cluster..."
+  ansible.builtin.stat:
+    path: "/var/lib/pgsql/14/data/pg_hba.conf"
+  register: postgres_data
+
+- name: "Initializing PostgreSQL"
+  ansible.builtin.shell: 
+    cmd: "/usr/pgsql-14/bin/postgresql-14-setup initdb"
+  when: not postgres_data.stat.exists
+
+# Starting PostgreSQL 14
+- name: Starting service PostgreSQL 14, if not started
+  ansible.builtin.service:
+    name: postgresql-14
+    state: started
+    enabled: yes
+
+- name: "Creating rubyapp database"
+  community.postgresql.postgresql_db:
+    name: "{{db_name}}"
+    encoding: UTF-8
+  become: yes
+  become_user: postgres
+
+- name: "Creating rubyapp db user"
+  community.postgresql.postgresql_user:
+    state: present
+    name: "{{db_user}}"
+    password: "{{db_password}}"
+  become: yes
+  become_user: postgres
+
+- name: "Granting user access to app db"
+  community.postgresql.postgresql_privs:
+    type: database
+    state: present
+    database: "{{db_name}}"
+    roles: "{{db_user}}"
+    privs: ALL
+  become: yes
+  become_user: postgres
+
+- name: "Allowing md5 connection for the db user"
+  community.postgresql.postgresql_pg_hba:
+    dest: "/var/lib/pgsql/14/data/pg_hba.conf"
+    contype: host
+    databases: all
+    method: md5
+    users: "{{db_user}}"
+    create: true
+  become: yes
+  become_user: postgres
+  notify: restart postgres
+
+- name: Flush handlers (For restarting PostgreSQL 14 now)
+  meta: flush_handlers

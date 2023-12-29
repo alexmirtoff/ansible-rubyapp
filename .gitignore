@@ -1,0 +1,3 @@
+.vagrant
+.travis.yml
+files/vagrant*

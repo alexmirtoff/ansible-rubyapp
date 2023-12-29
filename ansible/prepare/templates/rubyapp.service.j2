@@ -1,0 +1,33 @@
+[Unit]
+Description=Ruby Application
+Requires=network.target
+After=syslog.target network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/rubyapp
+
+Environment=GEM_HOME=/usr/local/rvm/gems/ruby-2.3.8
+Environment=IRBRC=/usr/local/rvm/rubies/ruby-2.3.8/.irbrc
+Environment=MY_RUBY_HOME=/usr/local/rvm/rubies/ruby-2.3.8
+Environment=PATH=/usr/local/rvm/gems/ruby-2.3.8/bin:/usr/local/rvm/gems/ruby-2.3.8@global/bin:/usr/local/rvm/rubies/ruby-2.3.8/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/local/rvm/bin:/home/vagrant/.local/bin:/home/vagrant/bin
+Environment=GEM_PATH=/usr/local/rvm/gems/ruby-2.3.8:/usr/local/rvm/gems/ruby-2.3.8@global
+Environment=RUBY_VERSION=ruby-2.3.8
+
+Environment=SECRET_KEY_BASE={{secret_key_base}}
+Environment=RAILS_ENV={{rails_env}}
+Environment=RAILS_LOG_TO_STDOUT={{rails_log_to_stdout}}
+Environment=DB_HOST={{db_host}}
+Environment=DB_PORT={{db_port}}
+Environment=DB_NAME={{db_name}}
+Environment=DB_USER={{db_user}}
+Environment=DB_PASSWORD={{db_password}}
+
+ExecStartPre=/usr/local/rvm/gems/ruby-2.3.8/bin/bundle exec rake db:migrate
+ExecStart=/usr/local/rvm/gems/ruby-2.3.8/bin/bundle exec puma -b unix:///opt/rubyapp/puma.sock -e $RAILS_ENV config.ru
+User=rubyapp
+Group=rubyapp
+PIDFile={{ruby_application_path}}/rubyapp.pid
+
+[Install]
+WantedBy=multi-user.target
