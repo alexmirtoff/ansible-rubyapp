@@ -1,5 +1,6 @@
 # ansible-rubyapp
 This repository was created for practice.
+This set of tools will install xPaste written on Ruby: https://github.com/southbridgeio/xpaste
 
 Tested with:
 
