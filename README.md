@@ -18,5 +18,6 @@ Howto use:
 4. cd ~/ansible
 5. ansible-galaxy install -r requirements.yml
 6. ansible-playbook playbook.yml
+7. Open http://<your-ip-address> on 80 port
 
 Or you can use it without controlnode & manage it from your host.
