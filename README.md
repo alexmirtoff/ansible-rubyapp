@@ -4,7 +4,7 @@ This set of tools will install xPaste written on Ruby: https://github.com/southb
 
 Tested with:
 
-Vagrant 2.4.0 with VirtualBox 6.1.38<br />
+Vagrant 2.4.0 with VirtualBox 6.1.38 (Ubuntu 22.04) and VirtualBox 7.0.12 (macOS Sonoma 14.2.1)<br />
 Ansible-core 2.16.2<br />
 Ruby 2.3.8<br />
 PostgreSQL 14<br />
