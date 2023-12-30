@@ -10,7 +10,7 @@ Ruby 2.3.8<br />
 PostgreSQL 14<br />
 Nginx 1.24.0<br />
 
-Howto use:
+How to use:
 
 1. Generate SSH keys with name vagrant/vagrant.pub and put them to files directory.
 2. vagrant up
